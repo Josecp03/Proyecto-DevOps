@@ -1,0 +1,3 @@
+mysql_bind_address: "0.0.0.0"
+backend_subnet: 10.0.2.0/24
+restore_dir: /tmp/db_restore

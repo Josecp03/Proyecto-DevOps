@@ -1,0 +1,71 @@
+- name: Crear directorio de backups si no existe
+  file:
+    path: "{{ backup_dir }}"
+    state: directory
+    mode: '0755'
+
+- name: Instalar Azure CLI desde el repositorio oficial
+  shell: curl -sL https://aka.ms/InstallAzureCLIDeb | bash
+  args:
+    creates: /usr/bin/az
+  become: true
+
+- name: Crear script de backup 
+  copy:
+    dest: /usr/local/bin/db_backup.sh
+    mode: '0755'
+    content: |
+      #!/bin/bash
+      set -euo pipefail
+
+      TIMESTAMP=$(date +%Y%m%dT%H%M%S)
+      BACKUP_FILE="/tmp/{{ db_name }}_$TIMESTAMP.sql.enc"
+      LATEST_FILE="/tmp/{{ db_name }}_latest.sql.enc"
+
+      # Crear backup cifrado
+      mysqldump -u{{ db_user }} -p'{{ db_password }}' {{ db_name }} \
+      | openssl enc -aes-256-cbc -salt -k '{{ backup_password }}' \
+      > "$BACKUP_FILE"
+
+      # Subir backup con timestamp
+      az storage blob upload \
+        --account-name {{ azure_storage_account }} \
+        --account-key {{ azure_storage_key }} \
+        --container-name {{ azure_container }} \
+        --file "$BACKUP_FILE" \
+        --name "$(basename "$BACKUP_FILE")" \
+        --overwrite
+
+      # Actualizar backup latest
+      cp "$BACKUP_FILE" "$LATEST_FILE"
+      az storage blob upload \
+        --account-name {{ azure_storage_account }} \
+        --account-key {{ azure_storage_key }} \
+        --container-name {{ azure_container }} \
+        --file "$LATEST_FILE" \
+        --name "$(basename "$LATEST_FILE")" \
+        --overwrite
+
+      # Borrar archivos temporales
+      rm -f "$BACKUP_FILE" "$LATEST_FILE"
+
+- name: Programar backup diario a las 2 AM
+  cron:
+    name: "Backup diario MySQL a Azure"
+    minute: "0"
+    hour: "2"
+    job: "/usr/local/bin/db_backup.sh"
+    user: root
+
+- name: Comprobar que el cron contiene la tarea
+  shell: crontab -l | grep "/usr/local/bin/db_backup.sh"
+  register: cron_check
+  changed_when: false
+  failed_when: cron_check.rc != 0
+
+- name: Verificar que el cron se configuró correctamente
+  assert:
+    that:
+      - cron_check.rc == 0
+    success_msg: "El cron para el backup diario está configurado correctamente."
+    fail_msg: "El cron no se configuró correctamente."

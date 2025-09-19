@@ -1,0 +1,7 @@
+azure_container: "backups"
+azure_storage_account: "stajosecp03devops"
+db_user: employee_app_user
+db_name: employee_management_system
+
+
+

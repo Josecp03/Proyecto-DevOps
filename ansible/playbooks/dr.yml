@@ -1,0 +1,7 @@
+- name: Pruebas de Disaster Recovery
+  hosts: vm-db
+  become: true
+  vars_files:
+    - ../inventories/dev/group_vars/vault.yml
+  roles:
+    - dr_test

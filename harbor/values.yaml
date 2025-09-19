@@ -1,0 +1,41 @@
+expose:
+  type: loadBalancer
+  tls:
+    enabled: true
+    certSource: auto
+    auto:
+      commonName: placeholder.domain
+
+externalURL: https://placeholder.domain
+
+harborAdminPassword: "Harbor12345"
+
+persistence:
+  enabled: true
+  resourcePolicy: "keep"
+  persistentVolumeClaim:
+    registry:
+      storageClass: ""
+      accessMode: ReadWriteOnce
+      size: 20Gi
+    jobservice:
+      jobLog:
+        storageClass: ""
+        accessMode: ReadWriteOnce
+        size: 1Gi
+    database:
+      storageClass: ""
+      accessMode: ReadWriteOnce
+      size: 5Gi
+    redis:
+      storageClass: ""
+      accessMode: ReadWriteOnce
+      size: 2Gi
+    trivy:
+      storageClass: ""
+      accessMode: ReadWriteOnce
+      size: 5Gi
+  imageChartStorage:
+    type: filesystem
+    filesystem:
+      rootdirectory: /storage
