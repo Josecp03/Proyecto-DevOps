@@ -1,0 +1,22 @@
+namespace: dev
+
+backend:
+  replicaCount: 2
+  image:
+    repository: acrjosecp03devops.azurecr.io/backend
+    tag: latest
+  service:
+    port: 8080
+
+frontend:
+  replicaCount: 2
+  image:
+    repository: acrjosecp03devops.azurecr.io/frontend
+    tag: latest
+  service:
+    port: 80
+
+config:
+  SPRING_DATASOURCE_URL: "jdbc:mysql://10.0.2.5:3306/employee_management_system?useSSL=false"
+  SPRING_DATASOURCE_USERNAME: "employee_app_user"
+  SPRING_DATASOURCE_PASSWORD: "TXlTM2N1cjNQQHNzdzByZCE=" 

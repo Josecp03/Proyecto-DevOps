@@ -1,0 +1,48 @@
+- name: Instalar Azure CLI en la VM de base de datos
+  shell: curl -sL https://aka.ms/InstallAzureCLIDeb | bash
+  args:
+    creates: /usr/bin/az
+  become: true
+
+- name: Crear directorio temporal para restauración
+  file:
+    path: "{{ restore_dir }}"
+    state: directory
+    mode: '0755'
+
+- name: Descargar el último backup desde Azure Storage
+  shell: >
+    az storage blob download
+    --account-name {{ azure_storage_account }}
+    --account-key {{ azure_storage_key }}
+    --container-name {{ azure_container }}
+    --name {{ db_name }}_latest.sql.enc
+    --file {{ restore_dir }}/restore.sql.enc
+  args:
+    creates: "{{ restore_dir }}/restore.sql.enc"
+
+- name: Desencriptar el backup
+  command: >
+    openssl enc -d -aes-256-cbc
+    -in {{ restore_dir }}/restore.sql.enc
+    -out {{ restore_dir }}/restore.sql
+    -k "{{ backup_password }}"
+  args:
+    creates: "{{ restore_dir }}/restore.sql"
+
+- name: Restaurar la base de datos desde el backup
+  shell: >
+    mysql -u{{ db_user }} -p'{{ db_password }}' {{ db_name }} < {{ restore_dir }}/restore.sql
+
+- name: Validar restauración de la base de datos
+  shell: >
+    mysql -u{{ db_user }} -p'{{ db_password }}' -D {{ db_name }} -e "SELECT 1;"
+  register: db_validation
+  changed_when: false
+
+- name: Verificar que la base de datos responde correctamente
+  assert:
+    that:
+      - "'1' in db_validation.stdout"
+    success_msg: "La base de datos se restauró y responde correctamente."
+    fail_msg: "La restauración falló: la base de datos no responde correctamente."

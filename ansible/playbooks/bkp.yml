@@ -1,0 +1,7 @@
+- name: Automatización de backups de la BBDD
+  hosts: vm-bkp
+  become: true
+  vars_files:
+    - ../inventories/dev/group_vars/vault.yml
+  roles:
+    - backup

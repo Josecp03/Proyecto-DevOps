@@ -1,0 +1,7 @@
+- name: Configuración de MySQL en la VM de base de datos
+  hosts: vm-db
+  become: true
+  vars_files:
+    - ../inventories/dev/group_vars/vault.yml
+  roles:
+    - mysql

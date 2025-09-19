@@ -1,0 +1,67 @@
+- name: Instalar servidor MySQL
+  apt:
+    name: mysql-server
+    state: present
+    update_cache: yes
+
+- name: Asegurar que MySQL está arrancado
+  service:
+    name: mysql
+    state: started
+    enabled: true
+
+- name: Instalar dependencias Python para manejar MySQL
+  apt:
+    name: python3-pymysql
+    state: present
+
+- name: Crear base de datos
+  community.mysql.mysql_db:
+    name: "{{ db_name }}"
+    state: present
+    login_unix_socket: /var/run/mysqld/mysqld.sock
+
+- name: Crear usuario de aplicación
+  community.mysql.mysql_user:
+    name: "{{ db_user }}"
+    password: "{{ db_password }}"
+    priv: "{{ db_name }}.*:ALL"
+    host: "%"
+    state: present
+    login_unix_socket: /var/run/mysqld/mysqld.sock
+
+- name: Dar privilegios necesarios al usuario para backup
+  community.mysql.mysql_user:
+    name: "{{ db_user }}"
+    host: "%"
+    priv: "*.*:PROCESS,SELECT,LOCK TABLES,SHOW VIEW,EVENT,TRIGGER"
+    append_privs: yes
+    state: present
+    login_unix_socket: /var/run/mysqld/mysqld.sock
+
+- name: Copiar configuración segura de MySQL 
+  template:
+    src: mysqld.cnf.j2
+    dest: /etc/mysql/mysql.conf.d/mysqld.cnf
+    owner: root
+    group: root
+    mode: 0644
+  notify: Reiniciar MySQL
+
+- name: Verificar que la base de datos existe
+  command: "mysql -uroot -e 'SHOW DATABASES LIKE \"{{ db_name }}\";'"
+  register: db_check
+  changed_when: false
+
+- name: Mostrar el nombre de la base de datos
+  debug:
+    msg: "{{ db_check.stdout_lines[-1] }}"
+
+- name: Verificar que el usuario existe
+  command: "mysql -uroot -e 'SELECT User FROM mysql.user WHERE User=\"{{ db_user }}\";'"
+  register: user_check
+  changed_when: false
+
+- name: Mostrar el nombre del usuario
+  debug:
+    msg: "{{ user_check.stdout_lines[-1] }}"

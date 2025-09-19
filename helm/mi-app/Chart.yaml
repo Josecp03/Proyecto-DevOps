@@ -1,0 +1,5 @@
+apiVersion: v2
+name: mi-app
+description: Chart para desplegar backend y frontend
+version: 0.1.0
+appVersion: "1.0"
