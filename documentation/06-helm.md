@@ -261,7 +261,7 @@ spec:
 1. **Instalar el chart en el namespace `dev`:**
 
    ```bash
-   helm install mi-app . -f values-dev.yaml -n dev
+   helm install mi-app . -f values.yaml -n dev
    ```
 
 2. **Verificar los pods desplegados:**
@@ -270,13 +270,7 @@ spec:
    kubectl get pods -n dev
    ```
 
-3. **Actualizar a nueva versión (ejemplo: prod):**
-
-   ```bash
-   helm upgrade mi-app mi-harbor/mi-app -f values-prod.yaml -n dev
-   ```
-
-4. **Desinstalar la aplicación:**
+3. **Desinstalar la aplicación:**
 
    ```bash
    helm uninstall mi-app -n dev
