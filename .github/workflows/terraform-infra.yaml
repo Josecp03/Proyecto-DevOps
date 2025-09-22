@@ -66,7 +66,7 @@ jobs:
 
       # 6. Plan de ejecución
       - name: Terraform Plan
-        run: terraform plan -input=false -out=tfplan
+        run: terraform plan -input=false -out=tfplan -target="module.compute" -target="module.aks"
 
       # 7. Requiere aprobación manual antes de aplicar
       - name: Wait for approval
