@@ -44,3 +44,7 @@ module "aks" {
   subnet_aks_id      = module.networking.subnet_aks_id
 }
 
+
+
+
+
