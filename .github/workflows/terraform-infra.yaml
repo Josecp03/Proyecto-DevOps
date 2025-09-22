@@ -30,6 +30,8 @@ jobs:
       ARM_CLIENT_SECRET: ${{ secrets.AZURE_CLIENT_SECRET }}
       ARM_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
       ARM_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
+      TF_CLI_ARGS_plan: "-target=module.compute -target=module.aks"
+      TF_CLI_ARGS_apply: "-target=module.compute -target=module.aks"
 
     defaults:
       run:
@@ -66,7 +68,7 @@ jobs:
 
       # 6. Plan de ejecución
       - name: Terraform Plan
-        run: terraform plan -input=false -out=tfplan -target="module.compute" -target="module.aks"
+        run: terraform plan -input=false -out=tfplan
 
       # 7. Requiere aprobación manual antes de aplicar
       - name: Wait for approval
