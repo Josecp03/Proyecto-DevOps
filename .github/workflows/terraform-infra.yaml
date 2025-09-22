@@ -14,6 +14,10 @@ on:
 permissions:
   contents: write  
 
+concurrency:
+  group: terraform-infra
+  cancel-in-progress: false
+
 jobs:
   terraform:
     name: Terraform Workflow
