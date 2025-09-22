@@ -77,9 +77,8 @@ jobs:
           issue-body: "Se requiere aprobación manual para ejecutar Terraform Apply en el entorno de Azure."
           exclude-workflow-initiator-as-approver: false
           fail-on-denial: true
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
+          secret: ${{ secrets.GITHUB_TOKEN }}
+          
       # 8. Apply después de la aprobación
       - name: Terraform Apply
         run: terraform apply -input=false -auto-approve tfplan
