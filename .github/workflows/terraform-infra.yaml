@@ -47,14 +47,14 @@ jobs:
           cat <<'EOF' > terraform.tfvars
           ${{ secrets.TF_VARS }}
           EOF
-          
+
       # 4. Inicializar Terraform
       - name: Terraform Init
         run: terraform init
 
       # 5. Validar formato y sintaxis
       - name: Terraform Format
-        run: terraform fmt -check
+        run: terraform fmt -recursive
 
       - name: Terraform Validate
         run: terraform validate
