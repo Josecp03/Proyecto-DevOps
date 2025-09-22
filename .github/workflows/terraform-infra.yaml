@@ -41,22 +41,27 @@ jobs:
         with:
           terraform_version: 1.6.6
 
-      # 3. Inicializar Terraform
+      # 3. Crear archivo terraform.tfvars desde secret
+      - name: Create terraform.tfvars
+        run: |
+          echo "${{ secrets.TF_VARS }}" > terraform.tfvars
+
+      # 4. Inicializar Terraform
       - name: Terraform Init
         run: terraform init
 
-      # 4. Validar formato y sintaxis
+      # 5. Validar formato y sintaxis
       - name: Terraform Format
         run: terraform fmt -check
 
       - name: Terraform Validate
         run: terraform validate
 
-      # 5. Plan de ejecución
+      # 6. Plan de ejecución
       - name: Terraform Plan
-        run: terraform plan -out=tfplan
+        run: terraform plan -input=false -out=tfplan
 
-      # 6. Requiere aprobación manual antes de aplicar
+      # 7. Requiere aprobación manual antes de aplicar
       - name: Wait for approval
         uses: trstringer/manual-approval@v1
         with:
@@ -65,6 +70,6 @@ jobs:
           issue-title: "Aprobación requerida para Terraform Apply"
           issue-body: "Se requiere aprobación manual para ejecutar Terraform Apply en el entorno de Azure."
 
-      # 7. Aplicar cambios
+      # 8. Apply después de la aprobación
       - name: Terraform Apply
-        run: terraform apply -auto-approve tfplan
+        run: terraform apply -input=false -auto-approve tfplan
