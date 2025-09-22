@@ -43,8 +43,3 @@ module "aks" {
   node_vm_size   = var.aks_node_vm_size
   subnet_aks_id  = module.networking.subnet_aks_id
 }
-
-
-
-
-
