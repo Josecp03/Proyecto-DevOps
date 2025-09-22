@@ -71,10 +71,14 @@ jobs:
       - name: Wait for approval
         uses: trstringer/manual-approval@v1
         with:
-          approvers: Josecp03   
+          approvers: Josecp03
           minimum-approvals: 1
           issue-title: "Aprobación requerida para Terraform Apply"
           issue-body: "Se requiere aprobación manual para ejecutar Terraform Apply en el entorno de Azure."
+          exclude-workflow-initiator-as-approver: false
+          fail-on-denial: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       # 8. Apply después de la aprobación
       - name: Terraform Apply
