@@ -44,8 +44,10 @@ jobs:
       # 3. Crear archivo terraform.tfvars desde secret
       - name: Create terraform.tfvars
         run: |
-          echo -e "${{ secrets.TF_VARS }}" > terraform.tfvars
-
+          cat <<'EOF' > terraform.tfvars
+          ${{ secrets.TF_VARS }}
+          EOF
+          
       # 4. Inicializar Terraform
       - name: Terraform Init
         run: terraform init
