@@ -12,7 +12,8 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: write  
+  contents: write 
+  issues: write 
 
 concurrency:
   group: terraform-infra
@@ -78,7 +79,7 @@ jobs:
           exclude-workflow-initiator-as-approver: false
           fail-on-denial: true
           secret: ${{ secrets.GITHUB_TOKEN }}
-          
+
       # 8. Apply después de la aprobación
       - name: Terraform Apply
         run: terraform apply -input=false -auto-approve tfplan
