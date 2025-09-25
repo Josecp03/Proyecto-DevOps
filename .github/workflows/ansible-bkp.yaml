@@ -14,23 +14,55 @@ jobs:
   bkp:
     runs-on: ubuntu-latest
     steps:
+      # 1. Checkout repo
       - uses: actions/checkout@v4
+
+      # 2. Setup Python & Ansible
       - uses: actions/setup-python@v5
         with:
           python-version: '3.10'
       - run: |
-          pip install ansible-core==2.17.8 ansible-lint
+          pip install ansible-core==2.17.8 ansible-lint jq
+
+      # 3. Setup SSH
       - name: Setup SSH
         run: |
           mkdir -p ~/.ssh
           echo "${{ secrets.ANSIBLE_SSH_KEY }}" > ~/.ssh/id_rsa
           chmod 600 ~/.ssh/id_rsa
-          ssh-keyscan -H vm-bkp >> ~/.ssh/known_hosts
+
+      # 4. Vault password
       - name: Vault password
         run: echo "${{ secrets.ANSIBLE_VAULT_PASSWORD }}" > ~/.vault_pass.txt
+
+      # 5. Obtener outputs de Terraform (IP de bkp y db)
+      - name: Get Terraform outputs
+        working-directory: iac
+        run: terraform output -json > tf_outputs.json
+
+      # 6. Generar inventario dinámico
+      - name: Generate Ansible inventory
+        run: |
+          bkp_ip=$(jq -r .vm_bkp_public_ip.value iac/tf_outputs.json)
+          db_ip=$(jq -r .vm_db_private_ip.value iac/tf_outputs.json)
+
+          cat > ansible/inventories/dev/inventory.ini <<EOF
+          [bkp]
+          ${bkp_ip} ansible_user=azureuser
+
+          [db]
+          ${db_ip} ansible_user=azureuser ansible_ssh_common_args='-o ProxyCommand="ssh -W %h:%p -q azureuser@${bkp_ip}"'
+          EOF
+
+          echo "Generated inventory:"
+          cat ansible/inventories/dev/inventory.ini
+
+      # 7. Instalar dependencias de Ansible
       - name: Install requirements
         working-directory: ansible
         run: ansible-galaxy collection install -r requirements.yml
+
+      # 8. Ejecutar playbook de backup
       - name: Run Backup Playbook
         working-directory: ansible
         run: ansible-playbook -i inventories/dev/inventory.ini playbooks/bkp.yml --vault-password-file ~/.vault_pass.txt
