@@ -40,6 +40,10 @@ jobs:
         uses: hashicorp/setup-terraform@v3
         with:
           terraform_version: 1.6.6
+      
+      - name: Terraform Init
+        working-directory: iac
+        run: terraform init -input=false -reconfigure
 
       # 6. Obtener outputs de Terraform (IP de bkp y db)
       - name: Get Terraform outputs
