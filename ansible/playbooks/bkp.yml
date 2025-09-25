@@ -5,6 +5,3 @@
     - ../inventories/dev/group_vars/vault.yml
   roles:
     - backup
-
-
-
