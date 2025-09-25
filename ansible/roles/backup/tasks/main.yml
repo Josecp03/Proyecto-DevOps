@@ -69,3 +69,6 @@
       - cron_check.rc == 0
     success_msg: "El cron para el backup diario está configurado correctamente."
     fail_msg: "El cron no se configuró correctamente."
+
+
+
