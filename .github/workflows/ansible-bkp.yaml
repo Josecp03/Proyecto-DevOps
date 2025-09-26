@@ -43,7 +43,7 @@ jobs:
       - name: Vault password
         run: echo "${{ secrets.ANSIBLE_VAULT_PASSWORD }}" > ~/.vault_pass.txt
 
-      # 5. Instalar Terraform
+      # 5. Install Terraform
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
         with:
@@ -103,14 +103,14 @@ jobs:
           echo "Generated SSH config:"
           cat ~/.ssh/config
 
-      # 10. Debug SSH key (intenta conexión directa)
-      - name: Debug SSH connection to vm-bkp
+      # 10. Debug: probar conexión SSH antes de lanzar Ansible
+      - name: Test SSH connection
         run: |
           bkp_ip=$(jq -r .vm_bkp_public_ip.value iac/tf_outputs.json)
           echo "Testing SSH connection to $bkp_ip ..."
           ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no azureuser@$bkp_ip "echo 'SSH connected OK'"
-          
-      # 10. Generar inventario dinámico con nombres consistentes
+
+      # 11. Generar inventario dinámico con nombres consistentes
       - name: Generate Ansible inventory
         working-directory: ansible
         run: |
@@ -132,12 +132,12 @@ jobs:
           echo "Generated inventory:"
           cat inventories/dev/inventory.ini
 
-      # 11. Instalar dependencias de Ansible
+      # 12. Instalar dependencias de Ansible
       - name: Install requirements
         working-directory: ansible
         run: ansible-galaxy collection install -r requirements.yml
 
-      # 12. Ejecutar playbook de backup
+      # 13. Ejecutar playbook de backup
       - name: Run Backup Playbook
         working-directory: ansible
         run: ansible-playbook -i inventories/dev/inventory.ini playbooks/bkp.yml --vault-password-file ~/.vault_pass.txt
