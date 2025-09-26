@@ -14,4 +14,9 @@ output "aks_kubeconfig" {
   sensitive   = true
 }
 
+output "ssh_public_key" {
+  value       = var.ssh_public_key
+  description = "Clave pública usada para acceder a las VMs"
+  sensitive   = false
+}
 
