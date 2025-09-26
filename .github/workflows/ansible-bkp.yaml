@@ -36,10 +36,8 @@ jobs:
       - name: Setup SSH
         run: |
           mkdir -p ~/.ssh
-          # Decodifica la clave privada base64 
           echo "${{ secrets.ANSIBLE_SSH_KEY }}" | base64 --decode > ~/.ssh/id_rsa
           chmod 600 ~/.ssh/id_rsa
-          # Configuración opcional de ssh para evitar host key checking
           echo -e "Host *\n  StrictHostKeyChecking no\n" > ~/.ssh/config
           chmod 600 ~/.ssh/config
 
@@ -53,7 +51,7 @@ jobs:
         with:
           terraform_version: 1.6.6
 
-      # 6. Debug: verificar que los secrets de Azure estén presentes
+      # 6. Debug Azure env
       - name: Debug Azure env
         run: |
           echo "Checking Azure env variables..."
@@ -83,13 +81,12 @@ jobs:
           ARM_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
         run: terraform output -json > tf_outputs.json
 
+      # 8.1 Verificar que la clave privada corresponde a la pública en Terraform
       - name: Verify SSH key pair
         working-directory: iac
         run: |
-          # Extraer pública desde la privada y quitar espacios al final
-          PUB_FROM_PRIVATE=$(ssh-keygen -y -f ~/.ssh/id_rsa | awk '{print $1" "$2}' | tr -d '\r\n')
-          # Extraer pública de Terraform y quitar espacios al final
-          PUB_FROM_TFVARS=$(jq -r '.ssh_public_key.value' tf_outputs.json | awk '{print $1" "$2}' | tr -d '\r\n')
+          PUB_FROM_PRIVATE=$(ssh-keygen -y -f ~/.ssh/id_rsa)
+          PUB_FROM_TFVARS=$(jq -r '.ssh_public_key.value' tf_outputs.json)
 
           echo "Derived from private: $PUB_FROM_PRIVATE"
           echo "From Terraform: $PUB_FROM_TFVARS"
@@ -125,7 +122,7 @@ jobs:
           echo "Generated SSH config:"
           cat ~/.ssh/config
 
-      # 10. Debug: probar conexión SSH antes de lanzar Ansible
+      # 10. Test SSH connection
       - name: Test SSH connection
         run: |
           bkp_ip=$(jq -r .vm_bkp_public_ip.value iac/tf_outputs.json)
