@@ -103,6 +103,13 @@ jobs:
           echo "Generated SSH config:"
           cat ~/.ssh/config
 
+      # 10. Debug SSH key (intenta conexión directa)
+      - name: Debug SSH connection to vm-bkp
+        run: |
+          bkp_ip=$(jq -r .vm_bkp_public_ip.value iac/tf_outputs.json)
+          echo "Testing SSH connection to $bkp_ip ..."
+          ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no azureuser@$bkp_ip "echo 'SSH connected OK'"
+          
       # 10. Generar inventario dinámico con nombres consistentes
       - name: Generate Ansible inventory
         working-directory: ansible
