@@ -14,7 +14,7 @@ on:
 jobs:
   bkp:
     runs-on: ubuntu-latest
-    environment: dev   
+    environment: dev
     env:
       ARM_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
       ARM_CLIENT_SECRET: ${{ secrets.AZURE_CLIENT_SECRET }}
@@ -79,12 +79,29 @@ jobs:
           ARM_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
         run: terraform output -json > tf_outputs.json
 
-      # 9. Copiar ssh_config generado por Terraform al runner
-      - name: Copy SSH config
+      # 9. Generar SSH config dinámico
+      - name: Generate SSH config
         run: |
+          bkp_ip=$(jq -r .vm_bkp_public_ip.value iac/tf_outputs.json)
+          db_ip=$(jq -r .vm_db_private_ip.value iac/tf_outputs.json)
+
           mkdir -p ~/.ssh
-          cp iac/ssh_config ~/.ssh/config || echo "No ssh_config found, skipping"
+          cat > ~/.ssh/config <<EOF
+          Host vm-bkp
+            HostName ${bkp_ip}
+            User azureuser
+            IdentityFile ~/.ssh/id_rsa
+
+          Host vm-db
+            HostName ${db_ip}
+            User azureuser
+            ProxyJump vm-bkp
+            IdentityFile ~/.ssh/id_rsa
+          EOF
+
           chmod 600 ~/.ssh/config
+          echo "Generated SSH config:"
+          cat ~/.ssh/config
 
       # 10. Generar inventario dinámico con nombres consistentes
       - name: Generate Ansible inventory
@@ -104,6 +121,7 @@ jobs:
             [database]
             vm-db
             EOF
+
           echo "Generated inventory:"
           cat inventories/dev/inventory.ini
 
