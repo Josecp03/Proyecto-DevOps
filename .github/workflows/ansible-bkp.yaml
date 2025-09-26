@@ -36,8 +36,12 @@ jobs:
       - name: Setup SSH
         run: |
           mkdir -p ~/.ssh
-          printf "%s" "${{ secrets.ANSIBLE_SSH_KEY }}" > ~/.ssh/id_rsa
+          # Decodifica la clave privada base64
+          echo "${{ secrets.ANSIBLE_SSH_KEY }}" | base64 --decode > ~/.ssh/id_rsa
           chmod 600 ~/.ssh/id_rsa
+          # Configuración opcional de ssh para evitar host key checking
+          echo -e "Host *\n  StrictHostKeyChecking no\n" > ~/.ssh/config
+          chmod 600 ~/.ssh/config
 
       # 4. Vault password
       - name: Vault password
