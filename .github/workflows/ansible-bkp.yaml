@@ -93,12 +93,12 @@ jobs:
           cat > ~/.ssh/config <<EOF
           Host vm-bkp
             HostName ${bkp_ip}
-            User azureuser
+            User josecp03
             IdentityFile ~/.ssh/id_rsa
 
           Host vm-db
             HostName ${db_ip}
-            User azureuser
+            User josecp03
             ProxyJump vm-bkp
             IdentityFile ~/.ssh/id_rsa
           EOF
@@ -112,7 +112,7 @@ jobs:
         run: |
           bkp_ip=$(jq -r .vm_bkp_public_ip.value iac/tf_outputs.json)
           echo "Testing SSH connection to $bkp_ip ..."
-          ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no azureuser@$bkp_ip "echo 'SSH connected OK'"
+          ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no josecp03@$bkp_ip "echo 'SSH connected OK'"
 
       # 11. Generar inventario dinámico con nombres consistentes
       - name: Generate Ansible inventory
@@ -123,8 +123,8 @@ jobs:
 
           cat > inventories/dev/inventory.ini <<EOF
           [all]
-          vm-bkp ansible_host=${bkp_ip} ansible_user=azureuser
-          vm-db ansible_host=${db_ip} ansible_user=azureuser ansible_ssh_common_args='-o ProxyCommand="ssh -W %h:%p -q azureuser@${bkp_ip}"'
+          vm-bkp ansible_host=${bkp_ip} ansible_user=josecp03
+          vm-db ansible_host=${db_ip} ansible_user=josecp03 ansible_ssh_common_args='-o ProxyCommand="ssh -W %h:%p -q josecp03@${bkp_ip}"'
 
           [backups]
           vm-bkp
