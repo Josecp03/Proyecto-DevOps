@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - main
+      - dev
     paths:
       - 'ansible/playbooks/bkp.yml'
       - 'ansible/roles/backup/**'
@@ -13,7 +14,13 @@ on:
 jobs:
   bkp:
     runs-on: ubuntu-latest
-    environment: dev  
+    environment: dev   
+    env:
+      ARM_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
+      ARM_CLIENT_SECRET: ${{ secrets.AZURE_CLIENT_SECRET }}
+      ARM_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+      ARM_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
+
     steps:
       # 1. Checkout repo
       - uses: actions/checkout@v4
@@ -72,7 +79,14 @@ jobs:
           ARM_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
         run: terraform output -json > tf_outputs.json
 
-      # 9. Generar inventario dinámico
+      # 9. Copiar ssh_config generado por Terraform al runner
+      - name: Copy SSH config
+        run: |
+          mkdir -p ~/.ssh
+          cp iac/ssh_config ~/.ssh/config || echo "No ssh_config found, skipping"
+          chmod 600 ~/.ssh/config
+
+      # 10. Generar inventario dinámico con nombres consistentes
       - name: Generate Ansible inventory
         working-directory: ansible
         run: |
@@ -80,22 +94,25 @@ jobs:
           db_ip=$(jq -r .vm_db_private_ip.value ../iac/tf_outputs.json)
 
           cat > inventories/dev/inventory.ini <<EOF
-          [bkp]
-          ${bkp_ip} ansible_user=azureuser
+            [all]
+            vm-bkp ansible_host=${bkp_ip} ansible_user=azureuser
+            vm-db ansible_host=${db_ip} ansible_user=azureuser ansible_ssh_common_args='-o ProxyCommand="ssh -W %h:%p -q azureuser@${bkp_ip}"'
 
-          [db]
-          ${db_ip} ansible_user=azureuser ansible_ssh_common_args='-o ProxyCommand="ssh -W %h:%p -q azureuser@${bkp_ip}"'
-          EOF
+            [backups]
+            vm-bkp
 
+            [database]
+            vm-db
+            EOF
           echo "Generated inventory:"
           cat inventories/dev/inventory.ini
 
-      # 10. Instalar dependencias de Ansible
+      # 11. Instalar dependencias de Ansible
       - name: Install requirements
         working-directory: ansible
         run: ansible-galaxy collection install -r requirements.yml
 
-      # 11. Ejecutar playbook de backup
+      # 12. Ejecutar playbook de backup
       - name: Run Backup Playbook
         working-directory: ansible
         run: ansible-playbook -i inventories/dev/inventory.ini playbooks/bkp.yml --vault-password-file ~/.vault_pass.txt
