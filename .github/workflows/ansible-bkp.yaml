@@ -36,9 +36,8 @@ jobs:
       - name: Setup SSH
         run: |
           mkdir -p ~/.ssh
-          echo "${{ secrets.ANSIBLE_SSH_KEY_B64 }}" | base64 --decode > ~/.ssh/id_rsa
+          printf "%s" "${{ secrets.ANSIBLE_SSH_KEY }}" > ~/.ssh/id_rsa
           chmod 600 ~/.ssh/id_rsa
-
 
       # 4. Vault password
       - name: Vault password
