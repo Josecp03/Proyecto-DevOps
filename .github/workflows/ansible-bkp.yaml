@@ -97,7 +97,7 @@ jobs:
             User azureuser
             ProxyJump vm-bkp
             IdentityFile ~/.ssh/id_rsa
-EOF
+          EOF
 
           chmod 600 ~/.ssh/config
           echo "Generated SSH config:"
@@ -120,7 +120,7 @@ EOF
 
           [database]
           vm-db
-EOF
+          EOF
 
           echo "Generated inventory:"
           cat inventories/dev/inventory.ini
