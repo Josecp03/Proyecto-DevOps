@@ -87,17 +87,17 @@ jobs:
 
           mkdir -p ~/.ssh
           cat > ~/.ssh/config <<EOF
-          Host vm-bkp
-            HostName ${bkp_ip}
-            User azureuser
-            IdentityFile ~/.ssh/id_rsa
+Host vm-bkp
+  HostName ${bkp_ip}
+  User azureuser
+  IdentityFile ~/.ssh/id_rsa
 
-          Host vm-db
-            HostName ${db_ip}
-            User azureuser
-            ProxyJump vm-bkp
-            IdentityFile ~/.ssh/id_rsa
-          EOF
+Host vm-db
+  HostName ${db_ip}
+  User azureuser
+  ProxyJump vm-bkp
+  IdentityFile ~/.ssh/id_rsa
+EOF
 
           chmod 600 ~/.ssh/config
           echo "Generated SSH config:"
@@ -124,6 +124,7 @@ EOF
 
           echo "Generated inventory:"
           cat inventories/dev/inventory.ini
+
 
       # 11. Instalar dependencias de Ansible
       - name: Install requirements
