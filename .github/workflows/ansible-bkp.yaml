@@ -87,8 +87,10 @@ jobs:
       - name: Verify SSH key pair
         working-directory: iac
         run: |
-          PUB_FROM_PRIVATE=$(ssh-keygen -y -f ~/.ssh/id_rsa)
-          PUB_FROM_TFVARS=$(jq -r '.ssh_public_key.value' tf_outputs.json)
+          # Extraer pública desde la privada (ignora comentario final)
+          PUB_FROM_PRIVATE=$(ssh-keygen -y -f ~/.ssh/id_rsa | awk '{print $1" "$2}')
+          # Extraer pública de Terraform (ignora comentario final)
+          PUB_FROM_TFVARS=$(jq -r '.ssh_public_key.value' tf_outputs.json | awk '{print $1" "$2}')
 
           echo "Derived from private: $PUB_FROM_PRIVATE"
           echo "From Terraform: $PUB_FROM_TFVARS"
