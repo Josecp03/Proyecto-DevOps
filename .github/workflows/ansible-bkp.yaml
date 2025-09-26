@@ -111,16 +111,16 @@ jobs:
           db_ip=$(jq -r .vm_db_private_ip.value ../iac/tf_outputs.json)
 
           cat > inventories/dev/inventory.ini <<EOF
-            [all]
-            vm-bkp ansible_host=${bkp_ip} ansible_user=azureuser
-            vm-db ansible_host=${db_ip} ansible_user=azureuser ansible_ssh_common_args='-o ProxyCommand="ssh -W %h:%p -q azureuser@${bkp_ip}"'
+[all]
+vm-bkp ansible_host=${bkp_ip} ansible_user=azureuser
+vm-db ansible_host=${db_ip} ansible_user=azureuser ansible_ssh_common_args='-o ProxyCommand="ssh -W %h:%p -q azureuser@${bkp_ip}"'
 
-            [backups]
-            vm-bkp
+[backups]
+vm-bkp
 
-            [database]
-            vm-db
-            EOF
+[database]
+vm-db
+EOF
 
           echo "Generated inventory:"
           cat inventories/dev/inventory.ini
