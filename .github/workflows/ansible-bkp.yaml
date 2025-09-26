@@ -87,16 +87,16 @@ jobs:
 
           mkdir -p ~/.ssh
           cat > ~/.ssh/config <<EOF
-Host vm-bkp
-  HostName ${bkp_ip}
-  User azureuser
-  IdentityFile ~/.ssh/id_rsa
+          Host vm-bkp
+            HostName ${bkp_ip}
+            User azureuser
+            IdentityFile ~/.ssh/id_rsa
 
-Host vm-db
-  HostName ${db_ip}
-  User azureuser
-  ProxyJump vm-bkp
-  IdentityFile ~/.ssh/id_rsa
+          Host vm-db
+            HostName ${db_ip}
+            User azureuser
+            ProxyJump vm-bkp
+            IdentityFile ~/.ssh/id_rsa
 EOF
 
           chmod 600 ~/.ssh/config
@@ -111,20 +111,19 @@ EOF
           db_ip=$(jq -r .vm_db_private_ip.value ../iac/tf_outputs.json)
 
           cat > inventories/dev/inventory.ini <<EOF
-[all]
-vm-bkp ansible_host=${bkp_ip} ansible_user=azureuser
-vm-db ansible_host=${db_ip} ansible_user=azureuser ansible_ssh_common_args='-o ProxyCommand="ssh -W %h:%p -q azureuser@${bkp_ip}"'
+          [all]
+          vm-bkp ansible_host=${bkp_ip} ansible_user=azureuser
+          vm-db ansible_host=${db_ip} ansible_user=azureuser ansible_ssh_common_args='-o ProxyCommand="ssh -W %h:%p -q azureuser@${bkp_ip}"'
 
-[backups]
-vm-bkp
+          [backups]
+          vm-bkp
 
-[database]
-vm-db
+          [database]
+          vm-db
 EOF
 
           echo "Generated inventory:"
           cat inventories/dev/inventory.ini
-
 
       # 11. Instalar dependencias de Ansible
       - name: Install requirements
