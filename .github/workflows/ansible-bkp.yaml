@@ -83,14 +83,13 @@ jobs:
           ARM_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
         run: terraform output -json > tf_outputs.json
 
-      # 8.1 Verificar que la clave privada corresponde a la pública en Terraform
       - name: Verify SSH key pair
         working-directory: iac
         run: |
-          # Extraer pública desde la privada (ignora comentario final)
-          PUB_FROM_PRIVATE=$(ssh-keygen -y -f ~/.ssh/id_rsa | awk '{print $1" "$2}')
-          # Extraer pública de Terraform (ignora comentario final)
-          PUB_FROM_TFVARS=$(jq -r '.ssh_public_key.value' tf_outputs.json | awk '{print $1" "$2}')
+          # Extraer pública desde la privada y quitar espacios al final
+          PUB_FROM_PRIVATE=$(ssh-keygen -y -f ~/.ssh/id_rsa | awk '{print $1" "$2}' | tr -d '\r\n')
+          # Extraer pública de Terraform y quitar espacios al final
+          PUB_FROM_TFVARS=$(jq -r '.ssh_public_key.value' tf_outputs.json | awk '{print $1" "$2}' | tr -d '\r\n')
 
           echo "Derived from private: $PUB_FROM_PRIVATE"
           echo "From Terraform: $PUB_FROM_TFVARS"
